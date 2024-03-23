@@ -2,19 +2,28 @@ import pickle
 from sklearn.svm import SVC 
 from sklearn.preprocessing import LabelEncoder
 
+# Load user embeddings
+with open("user_embeddings.pickle", "rb") as f:
+    data = pickle.load(f)
 
-data = pickle.loads(open("./pickle/embeddings.pickle","rb").read())
+# Extract embeddings and labels from the user embeddings dictionary
+embeddings = []
+labels = []
+for user_name, user_data in data["embeddings"].items():
+    embeddings.extend(user_data)
+    labels.extend([user_name] * len(user_data))
 
+# Convert labels to numerical form using LabelEncoder
 le = LabelEncoder()
-labels = le.fit_transform(data['names'])
+labels = le.fit_transform(labels)
 
-classifier = SVC(C=1.0,kernel="linear",probability=True)
-classifier.fit(data["embeddings"],labels)
+# Train the classifier
+classifier = SVC(C=1.0, kernel="linear", probability=True)
+classifier.fit(embeddings, labels)
 
-f = open("./pickle/classifier.pickle","wb")
-f.write(pickle.dumps(classifier))
-f.close()
+# Save the trained classifier and label encoder
+with open("classifier.pickle", "wb") as f:
+    pickle.dump(classifier, f)
 
-f = open("./pickle/label.pickle","wb")
-f.write(pickle.dumps(le))
-f.close()
+with open("label_encoder.pickle", "wb") as f:
+    pickle.dump(le, f)
